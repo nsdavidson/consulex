@@ -137,4 +137,8 @@ defmodule Consul.Request do
   def add_param(request, location, key, value) do
     Map.update!(request, location, &(&1 ++ [{key, value}]))
   end
+
+  def add_body(request, body_value) do
+    Map.put(request, :body, [body: body_value])
+  end
 end

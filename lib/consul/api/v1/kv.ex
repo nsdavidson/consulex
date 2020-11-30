@@ -45,6 +45,69 @@ defmodule Consul.Api.V1.Kv do
 
         {:ok, %{env | body: result}}
 
+      {:error, %{status: 404}} ->
+        {:error, :not_found}
+
+      other ->
+        other
+    end
+  end
+
+  def put(connection, key, value, optional_params \\ [], opts \\ []) do
+    optional_params_config = %{
+      :dc => :query,
+      :separator => :query,
+      :flags => :query,
+      :cas => :query,
+      :acquire => :query,
+      :release => :query,
+      :ns => :query
+    }
+
+    request =
+      Request.new()
+      |> Request.method(:put)
+      |> Request.url("/v1/kv/{key}", %{
+        "key" => key
+      })
+      |> Request.add_body(value)
+      |> Request.add_optional_params(optional_params_config, optional_params)
+
+    connection
+    |> Connection.execute(request)
+    |> Response.decode(opts ++ [as: %{}])
+    |> case do
+      {:ok, %{body: true}} ->
+        {:ok, true}
+
+      other ->
+        other
+    end
+  end
+
+  def delete(connection, key, optional_params \\ [], opts \\ []) do
+    optional_params_config = %{
+      :dc => :query,
+      :cas => :query,
+      :ns => :query,
+      :recurse => :query
+    }
+
+    request =
+      Request.new()
+      |> Request.method(:delete)
+      |> Request.url("/v1/kv/{key}", %{
+        "key" => key
+      })
+      |> Request.add_optional_params(optional_params_config, optional_params)
+
+    connection
+    |> Connection.execute(request)
+    |> Response.decode(opts ++ [as: %{}])
+    |> case do
+      {:ok, %{body: true}} ->
+        {:ok, true}
+
       other ->
         other
     end
